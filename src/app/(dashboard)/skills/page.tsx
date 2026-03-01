@@ -1,15 +1,28 @@
 import { createClient } from "@/lib/supabase/server";
-import SkillCard from "@/components/SkillCard";
+import SkillList from "@/components/SkillList";
+import Pagination from "@/components/Pagination";
 import type { SectorSkill } from "@/lib/types";
 
-export default async function SkillsPage() {
+interface SkillsPageProps {
+    searchParams: Promise<{ [key: string]: string | undefined }>;
+}
+
+export default async function SkillsPage({ searchParams }: SkillsPageProps) {
+    const params = await searchParams;
     const supabase = await createClient();
 
-    const { data: sectorSkills } = await supabase
+    const page = Number(params.page) || 1;
+    const pageSize = 5;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const { data: sectorSkills, count } = await supabase
         .from("sector_skills")
-        .select("*, skill:skills(*), sector:sectors(*)")
+        .select("*, skill:skills(*), sector:sectors(*)", { count: "exact" })
         .order("priority_score", { ascending: false })
-        .limit(50);
+        .range(start, end);
+
+    const totalPages = Math.ceil((count || 0) / pageSize);
 
     return (
         <>
@@ -26,22 +39,8 @@ export default async function SkillsPage() {
             </div>
 
             <div className="px-6 lg:px-8 py-6">
-                <div className="flex flex-col gap-5">
-                    {(sectorSkills as SectorSkill[])?.length === 0 && (
-                        <div className="text-center py-16">
-                            <div className="text-[48px] mb-4">📚</div>
-                            <h3 className="text-[18px] font-bold text-heading mb-2">
-                                No skills in library
-                            </h3>
-                            <p className="text-[14px] text-muted">
-                                Skills will appear here once data is collected.
-                            </p>
-                        </div>
-                    )}
-                    {(sectorSkills as SectorSkill[])?.map((ss) => (
-                        <SkillCard key={ss.id} sectorSkill={ss} />
-                    ))}
-                </div>
+                <SkillList sectorSkills={(sectorSkills as SectorSkill[]) || []} />
+                <Pagination totalPages={totalPages} />
             </div>
         </>
     );

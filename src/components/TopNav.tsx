@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getInitials } from "@/lib/utils";
+import GlobalSearch from "./GlobalSearch";
 
 interface TopNavProps {
     isAdmin: boolean;
@@ -118,9 +119,7 @@ export default function TopNav({
 
                 {/* Right actions */}
                 <div className="flex items-center gap-3">
-                    <button className="p-2 rounded-lg hover:bg-surface transition-colors">
-                        <Search size={20} className="text-muted" />
-                    </button>
+                    <GlobalSearch />
                     <button className="p-2 rounded-lg hover:bg-surface transition-colors relative">
                         <Bell size={20} className="text-muted" />
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-coral" />
@@ -155,15 +154,17 @@ export default function TopNav({
                                     </p>
                                     <p className="text-[11px] text-subtle truncate">{userEmail}</p>
                                 </div>
-                                <form action="/auth/signout" method="post">
-                                    <button
-                                        type="submit"
-                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface text-[13px] text-coral"
-                                    >
-                                        <LogOut size={16} />
-                                        Sign Out
-                                    </button>
-                                </form>
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        await fetch("/auth/signout", { method: "POST" });
+                                        window.location.href = "/login";
+                                    }}
+                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface text-[13px] text-coral"
+                                >
+                                    <LogOut size={16} />
+                                    Sign Out
+                                </button>
                             </div>
                         )}
                     </div>
@@ -208,6 +209,6 @@ export default function TopNav({
                     );
                 })}
             </div>
-        </nav>
+        </nav >
     );
 }

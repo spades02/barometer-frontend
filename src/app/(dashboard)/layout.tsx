@@ -20,9 +20,17 @@ export default async function DashboardLayout({
     // Check if user is admin
     const { data: adminRecord } = await supabase
         .from("admin_users")
-        .select("id, is_active")
+        .select("id, is_active, user_id")
         .eq("email", user.email!)
         .maybeSingle();
+
+    // If admin record exists but user_id not linked yet, link it
+    if (adminRecord && !adminRecord.user_id) {
+        await supabase
+            .from("admin_users")
+            .update({ user_id: user.id })
+            .eq("email", user.email!);
+    }
 
     const isAdmin = !!adminRecord?.is_active;
 

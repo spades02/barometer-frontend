@@ -1,14 +1,56 @@
 import { createClient } from "@/lib/supabase/server";
 import StatusBadge from "@/components/StatusBadge";
+import Pagination from "@/components/Pagination";
+import MomentumChart from "@/components/MomentumChart";
+import TrendTable from "@/components/TrendTable";
 
-export default async function TrendingPage() {
+interface TrendingPageProps {
+    searchParams: Promise<{ [key: string]: string | undefined }>;
+}
+
+export default async function TrendingPage({ searchParams }: TrendingPageProps) {
+    const params = await searchParams;
     const supabase = await createClient();
 
-    const { data: trends } = await supabase
+    const page = Number(params.page) || 1;
+    const pageSize = 5;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const { data: rawTrends, count } = await supabase
         .from("trends")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
+        .select(`
+            *,
+            skill_trend_links (
+                skills (
+                    tags
+                )
+            )
+        `, { count: "exact" })
+        .order("source_count", { ascending: false })
+        .range(start, end);
+
+    const totalPages = Math.ceil((count || 0) / pageSize);
+
+    // Format the trends to extract tags from nested relations and mock momentum
+    const trends = (rawTrends || []).map((t: any) => {
+        const tagSet = new Set<string>();
+        t.skill_trend_links?.forEach((link: any) => {
+            if (link.skills?.tags) {
+                link.skills.tags.forEach((tag: string) => tagSet.add(tag));
+            }
+        });
+        return {
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            status: t.status,
+            source_count: t.source_count,
+            created_at: t.created_at,
+            momentum: t.source_count * 10 || 50, // Mock momentum based on source count
+            tags: Array.from(tagSet),
+        };
+    });
 
     return (
         <>
@@ -25,73 +67,24 @@ export default async function TrendingPage() {
             </div>
 
             <div className="px-6 lg:px-8 py-6">
-                {/* Trend cards list */}
-                <div className="space-y-4">
-                    {trends?.length === 0 && (
-                        <div className="text-center py-16">
-                            <div className="text-[48px] mb-4">📈</div>
-                            <h3 className="text-[18px] font-bold text-heading mb-2">
-                                No trends detected yet
-                            </h3>
-                            <p className="text-[14px] text-muted">
-                                Trends will appear as data collection workflows run.
-                            </p>
-                        </div>
-                    )}
-                    {trends?.map(
-                        (trend: {
-                            id: string;
-                            title: string;
-                            description: string | null;
-                            status: string;
-                            source_count: number;
-                            created_at: string;
-                        }) => (
-                            <div
-                                key={trend.id}
-                                className="bg-white rounded-xl border p-5 transition-all hover:shadow-md cursor-pointer"
-                                style={{
-                                    borderColor: "#e2e8f0",
-                                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-                                }}
-                            >
-                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-[15px] font-bold text-heading truncate">
-                                                {trend.title}
-                                            </h3>
-                                            <StatusBadge status={trend.status} />
-                                        </div>
-                                        <p className="text-[13px] text-muted line-clamp-2">
-                                            {trend.description || "No description available."}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-4 shrink-0">
-                                        <div className="text-center">
-                                            <div
-                                                className="text-[18px] font-bold"
-                                                style={{ color: "#1d4ed8" }}
-                                            >
-                                                {trend.source_count}
-                                            </div>
-                                            <div className="text-[11px] text-subtle">Sources</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-[12px] text-muted">
-                                                {new Date(trend.created_at).toLocaleDateString("en-GB", {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                })}
-                                            </div>
-                                            <div className="text-[11px] text-subtle">Detected</div>
-                                        </div>
-                                    </div>
-                                </div>
+                {/* Main Content Area */}
+                <div className="space-y-6">
+                    {/* Momentum Chart */}
+                    <MomentumChart data={trends} />
+
+                    {/* Trends Table */}
+                    <div className="mt-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">Top Trending Skills</h3>
+                                <p className="text-sm text-slate-500">Highest momentum signals grouped by domain</p>
                             </div>
-                        )
-                    )}
+                        </div>
+                        <TrendTable trends={trends} />
+                    </div>
                 </div>
+                {/* Pagination */}
+                <Pagination totalPages={totalPages} />
             </div>
         </>
     );

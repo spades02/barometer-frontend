@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import StatsCard from "@/components/StatsCard";
-import SkillCard from "@/components/SkillCard";
+import SkillList from "@/components/SkillList";
 import FilterPanel from "@/components/FilterPanel";
+import Pagination from "@/components/Pagination";
 import type { SectorSkill, Sector } from "@/lib/types";
 
 interface DashboardProps {
@@ -23,7 +24,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     // Build skill query with filters
     let query = supabase
         .from("sector_skills")
-        .select("*, skill:skills(*), sector:sectors(*)")
+        .select("*, skill:skills(*), sector:sectors(*)", { count: "exact" })
         .order("priority_score", { ascending: false });
 
     // Apply sector filter
@@ -68,7 +69,13 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     })();
     query = query.order(sortColumn, { ascending: false });
 
-    const { data: sectorSkills } = await query.limit(20);
+    const page = Number(params.page) || 1;
+    const pageSize = 5;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const { data: sectorSkills, count: totalRows } = await query.range(start, end);
+    const totalPages = Math.ceil((totalRows || 0) / pageSize);
 
     // Fetch stats
     const { count: totalSkills } = await supabase
@@ -147,22 +154,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                 </div>
 
                 {/* Skills */}
-                <div className="flex flex-col gap-5">
-                    {(sectorSkills as SectorSkill[])?.length === 0 && (
-                        <div className="text-center py-16">
-                            <div className="text-[48px] mb-4">🔍</div>
-                            <h3 className="text-[18px] font-bold text-heading mb-2">
-                                No skills found
-                            </h3>
-                            <p className="text-[14px] text-muted">
-                                Try adjusting your filters or check back later.
-                            </p>
-                        </div>
-                    )}
-                    {(sectorSkills as SectorSkill[])?.map((ss) => (
-                        <SkillCard key={ss.id} sectorSkill={ss} />
-                    ))}
-                </div>
+                <SkillList sectorSkills={(sectorSkills as SectorSkill[]) || []} />
+
+                {/* Pagination */}
+                <Pagination totalPages={totalPages} />
             </div>
         </>
     );

@@ -33,7 +33,7 @@ export default async function SettingsPage() {
                 </p>
             </div>
 
-            <div className="px-6 lg:px-8 py-6 max-w-3xl">
+            <div className="px-6 lg:px-8 py-6 max-w-3xl mx-auto">
                 {/* Admin Management */}
                 <div
                     className="bg-white rounded-xl border p-6 mb-6"

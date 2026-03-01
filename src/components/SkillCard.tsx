@@ -1,12 +1,12 @@
-import Link from "next/link";
 import ScoreBar from "./ScoreBar";
 import type { SectorSkill } from "@/lib/types";
 
 interface SkillCardProps {
     sectorSkill: SectorSkill;
+    onViewDetails?: () => void;
 }
 
-export default function SkillCard({ sectorSkill }: SkillCardProps) {
+export default function SkillCard({ sectorSkill, onViewDetails }: SkillCardProps) {
     const skill = sectorSkill.skill;
     if (!skill) return null;
 
@@ -46,7 +46,7 @@ export default function SkillCard({ sectorSkill }: SkillCardProps) {
                                         color: "#1d4ed8",
                                     }}
                                 >
-                                    {tag}
+                                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
                                 </span>
                             ))}
                             {quickWin && (
@@ -63,12 +63,12 @@ export default function SkillCard({ sectorSkill }: SkillCardProps) {
                         </div>
                     </div>
 
-                    <Link
-                        href={`/skills/${sectorSkill.skill_id}`}
-                        className="text-[13px] font-medium text-primary hover:underline inline-flex items-center gap-1"
+                    <button
+                        onClick={onViewDetails}
+                        className="text-[13px] font-medium text-primary hover:underline inline-flex items-center gap-1 cursor-pointer text-left"
                     >
                         View Details →
-                    </Link>
+                    </button>
                 </div>
 
                 {/* Right: Scores */}

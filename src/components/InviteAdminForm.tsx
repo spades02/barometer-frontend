@@ -2,19 +2,18 @@
 
 import { useState } from "react";
 import { Mail, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 export default function InviteAdminForm() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     async function handleInvite(e: React.FormEvent) {
         e.preventDefault();
         if (!email.trim()) return;
 
         setLoading(true);
-        setMessage(null);
 
         try {
             const supabase = createClient();
@@ -25,23 +24,19 @@ export default function InviteAdminForm() {
                 .insert({ email: email.trim() });
 
             if (insertError) {
-                setMessage({
-                    type: "error",
-                    text: insertError.message.includes("duplicate")
+                toast.error(
+                    insertError.message.includes("duplicate")
                         ? "This email is already an admin."
-                        : insertError.message,
-                });
+                        : insertError.message
+                );
                 setLoading(false);
                 return;
             }
 
-            setMessage({
-                type: "success",
-                text: `Invitation sent to ${email}. They can now register and will have admin access.`,
-            });
+            toast.success(`Invitation sent to ${email}. They can now register and will have admin access.`);
             setEmail("");
         } catch {
-            setMessage({ type: "error", text: "Failed to send invitation." });
+            toast.error("Failed to send invitation.");
         }
 
         setLoading(false);
@@ -74,19 +69,6 @@ export default function InviteAdminForm() {
                     <span>{loading ? "Inviting..." : "Invite Admin"}</span>
                 </button>
             </div>
-
-            {message && (
-                <div
-                    className="p-3 rounded-lg text-[13px] border"
-                    style={{
-                        backgroundColor: message.type === "success" ? "#ecfdf5" : "#fef2f2",
-                        borderColor: message.type === "success" ? "#a7f3d0" : "#fecaca",
-                        color: message.type === "success" ? "#065f46" : "#991b1b",
-                    }}
-                >
-                    {message.text}
-                </div>
-            )}
         </form>
     );
 }
