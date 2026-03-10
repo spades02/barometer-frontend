@@ -179,16 +179,18 @@ export default function DashboardHeader({ isAdmin, userName, userEmail }: Dashbo
                                     <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{displayName}</div>
                                     <div style={{ fontSize: 11, color: "#9ca3af" }}>{userEmail}</div>
                                 </div>
-                                <button
-                                    onClick={async () => { await fetch("/auth/signout", { method: "POST" }); window.location.href = "/login"; }}
-                                    style={{
-                                        width: "100%", padding: "10px 16px", background: "none", border: "none",
-                                        color: "#f43f5e", fontSize: 13, fontFamily: "inherit", cursor: "pointer",
-                                        textAlign: "left" as const, transition: "background 0.1s",
-                                    }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
-                                    onMouseLeave={e => (e.currentTarget.style.background = "none")}
-                                >Sign Out</button>
+                                <form action="/auth/signout" method="POST" style={{ margin: 0, padding: 0 }}>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            width: "100%", padding: "10px 16px", background: "none", border: "none",
+                                            color: "#f43f5e", fontSize: 13, fontFamily: "inherit", cursor: "pointer",
+                                            textAlign: "left" as const, transition: "background 0.1s",
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
+                                        onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                                    >Sign Out</button>
+                                </form>
                             </div>
                         )}
                     </div>

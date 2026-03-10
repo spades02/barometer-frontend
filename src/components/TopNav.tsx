@@ -154,17 +154,15 @@ export default function TopNav({
                                     </p>
                                     <p className="text-[11px] text-subtle truncate">{userEmail}</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={async () => {
-                                        await fetch("/auth/signout", { method: "POST" });
-                                        window.location.href = "/login";
-                                    }}
-                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface text-[13px] text-coral"
-                                >
-                                    <LogOut size={16} />
-                                    Sign Out
-                                </button>
+                                <form action="/auth/signout" method="POST" className="m-0 p-0">
+                                    <button
+                                        type="submit"
+                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface text-[13px] text-coral"
+                                    >
+                                        <LogOut size={16} />
+                                        Sign Out
+                                    </button>
+                                </form>
                             </div>
                         )}
                     </div>
