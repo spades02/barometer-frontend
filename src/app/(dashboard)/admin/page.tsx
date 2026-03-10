@@ -26,7 +26,7 @@ export default async function AdminPage() {
         .from("review_queue")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
     return (
         <>

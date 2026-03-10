@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import TopNav from "@/components/TopNav";
+import DashboardHeader from "@/components/DashboardHeader";
+import { SavedItemsProvider } from "@/lib/saved-items-context";
 
 export default async function DashboardLayout({
     children,
@@ -24,7 +25,7 @@ export default async function DashboardLayout({
         .eq("email", user.email!)
         .maybeSingle();
 
-    // If admin record exists but user_id not linked yet, link it
+    // Link admin user_id if needed
     if (adminRecord && !adminRecord.user_id) {
         await supabase
             .from("admin_users")
@@ -35,13 +36,15 @@ export default async function DashboardLayout({
     const isAdmin = !!adminRecord?.is_active;
 
     return (
-        <div className="min-h-screen bg-surface">
-            <TopNav
-                isAdmin={isAdmin}
-                userEmail={user.email!}
-                userName={user.user_metadata?.full_name}
-            />
-            <main>{children}</main>
-        </div>
+        <SavedItemsProvider>
+            <div style={{ minHeight: "100vh", background: "#f5f5f5" }}>
+                <DashboardHeader
+                    isAdmin={isAdmin}
+                    userName={user.user_metadata?.full_name || user.email?.split("@")[0] || "User"}
+                    userEmail={user.email || ""}
+                />
+                <main>{children}</main>
+            </div>
+        </SavedItemsProvider>
     );
 }

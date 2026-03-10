@@ -12,6 +12,8 @@ export interface Skill {
     skill_type: string;
     esco_uri: string | null;
     created_at: string;
+    updated_at: string;
+    tags?: string[];
 }
 
 export interface SectorSkill {
@@ -23,6 +25,9 @@ export interface SectorSkill {
     urgency_score: number | null;
     priority_score: number | null;
     quick_win_score: number | null;
+    effort_learn_score?: number | null;
+    effort_apply_score?: number | null;
+    admin_override?: Record<string, any>;
     ai_rationale: string | null;
     created_at: string;
     // Joined fields
@@ -80,6 +85,36 @@ export interface Source {
     publisher: string | null;
     authority_score: number | null;
     publication_date: string | null;
+}
+
+export interface SearchQuery {
+    id: string;
+    sector_id: string;
+    level: number;
+    layer: number;
+    spoor: string;
+    search_type: string;
+    query_text: string;
+    sort_order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    // Joined
+    sector?: { name: string; name_nl: string };
+}
+
+export interface SectorResearchConfig {
+    id: string;
+    sector_id: string;
+    level: number;
+    geo_focus: string;
+    level_description: string;
+    tier1_domains: string;
+    tier2_domains: string;
+    l1_hints: string;
+    l1_pdf_hints: string;
+    l2_hints: string;
+    l2_pdf_hints: string;
 }
 
 export type FilterState = {
